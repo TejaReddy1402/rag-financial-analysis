@@ -30,20 +30,23 @@ The application is built with a modern Python stack and integrates a powerful AP
 
 ## 📂 Project Structure
 
+```
+
 /rag-financial-analysis
 |
-|-- .github/workflows/ci-cd.yml # GitHub Actions workflow
-|-- data/                       # Input PDFs
-|-- vectorstore/                # FAISS index
-|-- .env                        # Secret API key (ignored)
-|-- .gitignore                  # Files for git to ignore
-|-- app.py                      # Streamlit web application
-|-- evaluate.py                 # MLflow evaluation script
-|-- eval_dataset.csv            # Ground-truth Q&A data
-|-- rag_core.py                 # Core RAG pipeline logic
-|-- requirements.txt            # Project dependencies
-|-- README.md                   # This file
+|-- .github/workflows/ci-cd.yml \# GitHub Actions workflow
+|-- data/                       \# Input PDFs
+|-- vectorstore/                \# FAISS index
+|-- .env                        \# Secret API key (ignored)
+|-- .gitignore                  \# Files for git to ignore
+|-- app.py                      \# Streamlit web application
+|-- evaluate.py                 \# MLflow evaluation script
+|-- eval\_dataset.csv            \# Ground-truth Q\&A data
+|-- rag\_core.py                 \# Core RAG pipeline logic
+|-- requirements.txt            \# Project dependencies
+|-- README.md                   \# This file
 
+````
 
 ## ⚙️ Setup and Local Installation
 
@@ -108,3 +111,5 @@ This project evolved significantly through a series of challenges and solutions,
     * An evaluation script (`evaluate.py`) was developed to test the RAG chain against a set of ground-truth questions and answers.
     * **MLflow** was integrated to log experiment runs and artifacts, allowing for tracking of the system's quality over time.
     * A **GitHub Actions** workflow was created to establish a CI/CD pipeline, automatically running the evaluation script on every push to the `main` branch, ensuring that new changes do not break the application's core functionality.
+
+````
