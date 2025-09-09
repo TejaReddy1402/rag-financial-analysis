@@ -39,14 +39,14 @@ Environment: Conda
 📂 Project Structure
 /rag-financial-analysis
 |
-|-- .github/workflows/ci-cd.yml # GitHub Actions workflow for automated evaluation
-|-- data/                       # Folder for input PDFs
-|-- vectorstore/                # Stores the created FAISS index
-|-- .env                        # Stores the secret API key (ignored by git)
-|-- .gitignore                  # Specifies files for git to ignore
-|-- app.py                      # The main Streamlit web application script
-|-- evaluate.py                 # The MLflow evaluation script
-|-- eval_dataset.csv            # Ground-truth Q&A dataset for testing
+|-- .github/workflows/ci-cd.yml # GitHub Actions workflow
+|-- data/                       # Input PDFs
+|-- vectorstore/                # FAISS index
+|-- .env                        # Secret API key (ignored)
+|-- .gitignore                  # Files for git to ignore
+|-- app.py                      # Streamlit web application
+|-- evaluate.py                 # MLflow evaluation script
+|-- eval_dataset.csv            # Ground-truth Q&A data
 |-- rag_core.py                 # Core RAG pipeline logic
 |-- requirements.txt            # Project dependencies
 |-- README.md                   # This file
@@ -61,7 +61,7 @@ cd rag-financial-analysis
 
 Set up the Conda environment:
 
-# (Optional but recommended) Create a new environment
+# (Optional but recommended)
 conda create --name rag_env python=3.10
 conda activate rag_env
 
