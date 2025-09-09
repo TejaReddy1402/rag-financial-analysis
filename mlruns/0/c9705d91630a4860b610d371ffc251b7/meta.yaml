@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/0/c9705d91630a4860b610d371ffc251b7/artifacts
+end_time: 1757413675314
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: c9705d91630a4860b610d371ffc251b7
+run_name: RAG Financial Analysis Evaluation
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1757413675261
+status: 4
+tags: []
+user_id: tejak

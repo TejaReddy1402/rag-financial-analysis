@@ -1,0 +1,15 @@
+# requirements.txt
+langchain
+langchain-community
+langchain-huggingface
+pypdf
+faiss-cpu
+sentence-transformers
+streamlit
+mlflow
+python-dotenv
+pandas
+accelerate
+bitsandbytes
+google-generativeai
+langchain-google-genai
