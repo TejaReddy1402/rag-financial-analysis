@@ -111,5 +111,3 @@ This project evolved significantly through a series of challenges and solutions,
     * An evaluation script (`evaluate.py`) was developed to test the RAG chain against a set of ground-truth questions and answers.
     * **MLflow** was integrated to log experiment runs and artifacts, allowing for tracking of the system's quality over time.
     * A **GitHub Actions** workflow was created to establish a CI/CD pipeline, automatically running the evaluation script on every push to the `main` branch, ensuring that new changes do not break the application's core functionality.
-
-````
