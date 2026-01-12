@@ -1,9 +1,30 @@
-langchain-community
-langchain-huggingface
-langchain-text-splitters
-faiss-cpu
-streamlit
-google-generativeai
-python-dotenv
-sentence-transformers
-pypdf
+# --- Core Frameworks ---
+streamlit>=1.52.2
+torch==2.9.1
+torchvision==0.24.1
+torchaudio==2.9.1
+numpy==1.26.4
+python-dotenv>=1.0.1
+protobuf>=5.28.0,<6.0.0
+
+# --- Speech-to-Text & TTS ---
+openai-whisper>=20250625
+streamlit-mic-recorder>=0.0.8
+streamlit-TTS>=0.0.8
+openai>=1.50.0
+gTTS>=2.5.0
+soundfile>=0.12.1
+ffmpeg-python>=0.2.0
+
+# --- Retrieval-Augmented Generation (RAG) ---
+langchain>=1.2.3
+langchain-community>=0.4.1
+langchain-huggingface>=1.2.0
+langchain-text-splitters>=1.1.0
+faiss-cpu>=1.13.2
+sentence-transformers>=5.2.0
+pypdf>=6.6.0
+tenacity>=9.0.0
+
+# --- AI Models & APIs ---
+google-genai>=1.57.0

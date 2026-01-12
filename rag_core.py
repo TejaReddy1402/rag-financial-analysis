@@ -1,72 +1,95 @@
 import os
 from dotenv import load_dotenv
+from tenacity import retry, stop_after_attempt, wait_random_exponential
+from google import genai
+from google.genai.types import HttpOptions
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-import google.generativeai as genai
 
+# Load environment variables (API Keys)
 load_dotenv()
 
-DATA_PATH = 'data/financial_report.pdf'
+DATA_DIR = 'data/profiles/'
 DB_FAISS_PATH = 'vectorstore/db_faiss'
 
 def create_vector_db():
-    print("Creating vector database...")
-    if not os.path.exists(DATA_PATH):
-        print(f"Error: File not found at {DATA_PATH}")
-        return
-    loader = PyPDFLoader(DATA_PATH)
-    documents = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    texts = text_splitter.split_documents(documents)
-    embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2',
-                                       model_kwargs={'device': 'cpu'})
+    """Processes PDFs into high-context chunks and saves to FAISS index."""
+    if not os.path.exists(DATA_DIR): 
+        os.makedirs(DATA_DIR)
+        
+    all_docs = []
+    files = [f for f in os.listdir(DATA_DIR) if f.endswith(".pdf")]
+    if not files: 
+        return False
+
+    for filename in files:
+        loader = PyPDFLoader(os.path.join(DATA_DIR, filename))
+        docs = loader.load()
+        # Metadata helps the LLM cite specific companies
+        company_name = filename.replace(".pdf", "").replace("_", " ")
+        for d in docs:
+            d.metadata["company"] = company_name
+            d.metadata["source"] = filename
+        all_docs.extend(docs)
+
+    # OPTIMIZED: Large chunks capture the 'spirit' of CEO commentary and detailed data
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=300)
+    texts = text_splitter.split_documents(all_docs)
+    
+    # Using local embeddings for speed and cost-efficiency
+    embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
     db = FAISS.from_documents(texts, embeddings)
     db.save_local(DB_FAISS_PATH)
-    print("Vector database created successfully.")
+    return True
+
+class GoogleLLM:
+    """Wrapper for the Gemini 2.5 Flash Model."""
+    def __init__(self, model_name="gemini-2.5-flash"):
+        self.client = genai.Client(
+            api_key=os.getenv("GOOGLE_API_KEY"),
+            http_options=HttpOptions(api_version="v1")
+        )
+        self.model = model_name
+        
+    @retry(stop=stop_after_attempt(5), wait=wait_random_exponential(multiplier=1, max=60))
+    def generate(self, prompt: str) -> str:
+        response = self.client.models.generate_content(
+            model=self.model, 
+            contents=prompt
+        )
+        return response.text
+
+class SimpleRAGChain:
+    """The Logic Chain connecting Retrieval to Generation."""
+    def __init__(self, retriever, llm):
+        self.retriever = retriever
+        self.llm = llm
+        # BRANDING UPDATE: Identity in system prompt
+        self.template = (
+            "SYSTEM: You are the Financial Document Analysing Assistant. Provide a detailed answer using the CONTEXT provided. "
+            "If the answer is a vision or strategic point from a CEO, synthesize it fully with professional terminology. "
+            "If the information is not present, state that you cannot find it in the current profiles.\n\n"
+            "CONTEXT:\n{context}\n\nUSER QUESTION: {question}\n\nFINAL RESPONSE:"
+        )
+
+    def invoke(self, question: str):
+        # Retrieve the most relevant 8 chunks
+        docs = self.retriever.invoke(question)
+        context = "\n---\n".join([f"[{d.metadata.get('company')}] {d.page_content}" for d in docs])
+        
+        # Generate the answer using Gemini 2.5
+        answer = self.llm.generate(self.template.format(context=context, question=question))
+        
+        # Return answer and list of unique sources
+        sources = list(set([d.metadata.get('company') for d in docs]))
+        return {"answer": answer, "sources": sources}
 
 def setup_qa_chain():
-    embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2',
-                                       model_kwargs={'device': 'cpu'})
-    # Load the DB; if it fails, it might not exist yet
-    try:
-        db = FAISS.load_local(DB_FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
-    except Exception as e:
-        raise FileNotFoundError(f"Could not load vector DB at {DB_FAISS_PATH}. Did you run create_vector_db()?") from e
-        
-    retriever = db.as_retriever()
-
-    class GoogleLLM:
-        def __init__(self, model_name="gemini-2.5-flash"):
-            self.model = model_name
-            api_key = os.getenv("GOOGLE_API_KEY")
-            if api_key:
-                genai.configure(api_key=api_key)
-            
-        def generate(self, prompt: str) -> str:
-            model = genai.GenerativeModel(self.model)
-            response = model.generate_content(prompt)
-            return response.text
-
-    class SimpleRAGChain:
-        def __init__(self, retriever, llm):
-            self.retriever = retriever
-            self.llm = llm
-            self.template = (
-                "You are an expert financial analyst. Use the following pieces of context to answer the question.\n"
-                "Context:\n{context}\n\nQuestion:\n{question}\n\nAnswer:"
-            )
-
-        def invoke(self, question: str) -> str:
-            docs = self.retriever.invoke(question)
-            context = "\n".join([d.page_content for d in docs[:3]])
-            prompt = self.template.format(context=context, question=question)
-            return self.llm.generate(prompt)
-
-    google_model = os.getenv("GOOGLE_MODEL", "gemini-2.5-flash")
-    llm = GoogleLLM(model_name=google_model)
-    return SimpleRAGChain(retriever=retriever, llm=llm)
-
-if __name__ == "__main__":
-    create_vector_db()
+    """Initializes the retriever and the RAG chain for the app."""
+    embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
+    # Load the local vector database
+    db = FAISS.load_local(DB_FAISS_PATH, embeddings, allow_dangerous_deserialization=True)
+    # k=8 provides a deep context window for Gemini
+    return SimpleRAGChain(db.as_retriever(search_kwargs={"k": 8}), GoogleLLM())

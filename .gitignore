@@ -1,4 +1,8 @@
-venv/
 .env
 __pycache__/
-*.pyc
+*.py[cod]
+*.wav
+vectorstore/
+data/profiles/*.pdf
+venv/
+.DS_Store
