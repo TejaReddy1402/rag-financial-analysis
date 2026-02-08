@@ -1,14 +1,15 @@
 # --- Core Frameworks ---
 streamlit>=1.52.2
-torch==2.9.1
-torchvision==0.24.1
-torchaudio==2.9.1
-numpy==1.26.4
+# Using stable releases for Python 3.13 compatibility
+torch>=2.5.1 
+torchvision>=0.20.1
+torchaudio>=2.5.1
+numpy>=2.1.0
 python-dotenv>=1.0.1
 protobuf>=5.28.0,<6.0.0
 
 # --- Speech-to-Text & TTS ---
-openai-whisper>=20250625
+openai-whisper
 streamlit-mic-recorder>=0.0.8
 streamlit-TTS>=0.0.8
 openai>=1.50.0

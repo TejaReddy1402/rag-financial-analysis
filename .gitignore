@@ -1,8 +1,22 @@
+# --- Security ---
 .env
+
+# --- Python ---
 __pycache__/
 *.py[cod]
-*.wav
-vectorstore/
-data/profiles/*.pdf
+*$py.class
 venv/
+.venv/
+
+# --- Audio/Data ---
+*.wav
+Data/profiles/*.pdf
+
+# --- Vector Database ---
+vectorstore/
+
+# --- System/IDE ---
 .DS_Store
+.vscode/
+.idea/
+Thumbs.db
